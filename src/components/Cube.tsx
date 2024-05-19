@@ -4,7 +4,7 @@ import { OrbitControls, TransformControls, useCursor } from '@react-three/drei';
 import { useControls } from 'leva';
 import { DragControls } from'../utils/dragControls';
 import { useDrag } from 'react-use-gesture';
-import create from 'zustand';
+import { useCubeStore } from '../store.ts';
 import * as THREE from 'three';
 
 // Zustand store setup
@@ -119,13 +119,15 @@ export default function Cube() {
 
     const colors = ['hotpink', 'red', 'blue', 'green', 'yellow'];
     const ref = useRef();
-    const [colorIdx, setColorIdx] = useState(0);
-    const [position, setPosition] = useState([0, 0, 0]);
+    const {colorIdx, setColorIdx, position, setPosition} = useCubeStore();
+    
     const { size, viewport } = useThree();
     const aspect = size.width / viewport.width;
 
     useFrame(() => {
-     
+        if (ref.current) {
+            // Perform any necessary per-frame updates here
+          }
       });
 
     const bind = useDrag(
