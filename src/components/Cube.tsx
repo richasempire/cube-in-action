@@ -6,6 +6,7 @@ import { DragControls } from'../utils/dragControls';
 import { useDrag } from 'react-use-gesture';
 import { useCubeStore } from '../store.ts';
 import * as THREE from 'three';
+import { GizmoHelper } from '@react-three/drei';
 
 // Zustand store setup
 // const useStore = create((set) => ({
@@ -133,27 +134,36 @@ export default function Cube() {
     const { size, viewport } = useThree();
     const aspect = size.width / viewport.width;
 
+    const initialPosition = useRef<[number, number, number]>([0, 0, 0]);
+
+
     useFrame(() => {
         if (ref.current) {
             // Perform any necessary per-frame updates here
           }
       });
 
-    const bind = useDrag(
-        ({ offset: [x, y], last }) => {
-            if (last) {
-                console.log({last} , "no?");
-            const [x1, y1, z1] = ref.current.position.toArray();
-            const newBoxPosition = [x / aspect, -y / aspect, 0];
+      const bind = useDrag(
+        ({ offset: [x, y], last, memo }) => {
+          if (!memo) {
+            const initialPos = ref.current?.position.toArray() || [0, 0, 0];
+            initialPosition.current = initialPos;
+            memo = initialPos;
+          }
+    
+          if (last) {
+            const [x1, y1, z1] = initialPosition.current;
+            const newBoxPosition = [(x / aspect) + x1, (-y / aspect) + y1, z1];
             addBox(newBoxPosition as [number, number, number]);
             setDragging(false);
-        } 
-        else {
+            return memo;
+          } else {
             setDragging(true);
-        }
-          },
-          { pointerEvents: true }
-        );
+            return memo;
+          }
+        },
+        { pointerEvents: true }
+      );
 
 
     return (
@@ -165,21 +175,13 @@ export default function Cube() {
         <mesh position= {[0,0,0]}
         {...bind()}
         ref={ref}
-        onClick={(e) => {
-        //   if (colorIdx === 4) {
-        //     setColorIdx(0);
-        //   } else {
-        //     setColorIdx(colorIdx + 1);
-        //   }
-        }}
         onPointerOver={(e) => console.log('hover')}
         onPointerOut={(e) => console.log('unhover')}>
             <boxGeometry attach={"geometry"}/>
             <meshLambertMaterial attach="material" color= "gray" />
             <ambientLight intensity={0.9}/>
             <pointLight />
-            {/* <meshStandardMaterial color = "grey" /> */}
-
+           
         </mesh>
         </>
     )

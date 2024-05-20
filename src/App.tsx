@@ -1,7 +1,7 @@
 import React from 'react';
 import Cube from './components/Cube';
 import './App.css'; 
-import { OrbitControls, Sky } from '@react-three/drei';
+import { OrbitControls, Sky , GizmoHelper, GizmoViewcube } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { useCubeStore } from "./store.ts"
 
@@ -34,6 +34,9 @@ export default function App() {
     
             <Cube/>
             <OrbitControls enabled= {!isDragging} />
+            <GizmoHelper alignment="bottom-right" margin={[80, 80]}>
+        <GizmoViewcube axisColors={['red', 'green', 'blue']} labelColor="black" />
+      </GizmoHelper>
           </mesh>
           
       </Canvas>
