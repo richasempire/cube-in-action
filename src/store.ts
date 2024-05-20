@@ -1,15 +1,20 @@
 import { create } from 'zustand';
+import * as THREE from 'three';
 
 interface CubeState {
-  colorIdx: number;
-  setColorIdx: (idx: number) => void;
-  position: [number, number, number];
-  setPosition: (pos: [number, number, number]) => void;
+    boxes: { id: number; position: [number, number, number] }[];
+    addBox: (position: [number, number, number]) => void;
+    isDragging: boolean;
+    setDragging: (isDragging: boolean) => void;
 }
 
 export const useCubeStore = create<CubeState>((set) => ({
-  colorIdx: 0,
-  setColorIdx: (idx) => set({ colorIdx: idx }),
-  position: [0, 0, 0],
-  setPosition: (pos) => set({ position: pos }),
+    boxes: [{ id: 1, position: [0, 0, 0] }],
+    addBox: (position) =>
+      set((state) => ({
+        boxes: [...state.boxes, { id: state.boxes.length + 1, position }],
+      })),
+
+      isDragging: false,
+      setDragging: (isDragging) => set({ isDragging }),
 }));

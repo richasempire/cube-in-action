@@ -113,13 +113,22 @@ import * as THREE from 'three';
 //   );
 // }
 
+const Box = ({ position, id }) => {
+    const ref = useRef<THREE.Mesh>(null);
+  
+    return (
+      <mesh position={position} ref={ref}>
+        <boxGeometry attach="geometry" />
+        <meshLambertMaterial attach="material" color="hotpink" />
+      </mesh>
+    );
+  };
+
 
 
 export default function Cube() {
-
-    const colors = ['hotpink', 'red', 'blue', 'green', 'yellow'];
-    const ref = useRef();
-    const {colorIdx, setColorIdx, position, setPosition} = useCubeStore();
+    const ref = useRef<THREE.Mesh>(null);
+    const { addBox, boxes , isDragging, setDragging} = useCubeStore();
     
     const { size, viewport } = useThree();
     const aspect = size.width / viewport.width;
@@ -131,16 +140,29 @@ export default function Cube() {
       });
 
     const bind = useDrag(
-        ({ offset: [x, y] }) => {
-          const [, , z] = position;
-          setPosition([x / aspect, -y / aspect, z]);
-        },
-        { pointerEvents: true }
-      );
+        ({ offset: [x, y], last }) => {
+            if (last) {
+                console.log({last} , "no?");
+            const [x1, y1, z1] = ref.current.position.toArray();
+            const newBoxPosition = [x / aspect, -y / aspect, 0];
+            addBox(newBoxPosition as [number, number, number]);
+            setDragging(false);
+        } 
+        else {
+            setDragging(true);
+        }
+          },
+          { pointerEvents: true }
+        );
 
 
     return (
-        <mesh position={position}
+
+        <>
+        {boxes.map((box) => (
+          <Box key={box.id} position={box.position} id={box.id} />
+        ))}
+        <mesh position= {[0,0,0]}
         {...bind()}
         ref={ref}
         onClick={(e) => {
@@ -153,12 +175,12 @@ export default function Cube() {
         onPointerOver={(e) => console.log('hover')}
         onPointerOut={(e) => console.log('unhover')}>
             <boxGeometry attach={"geometry"}/>
-            <meshLambertMaterial attach="material" color={colors[colorIdx]} />
-            {/* <OrbitControls/> */}
+            <meshLambertMaterial attach="material" color= "gray" />
             <ambientLight intensity={0.9}/>
             <pointLight />
             {/* <meshStandardMaterial color = "grey" /> */}
 
         </mesh>
+        </>
     )
 };
