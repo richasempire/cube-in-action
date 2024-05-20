@@ -1,13 +1,17 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useState, useRef, useEffect } from 'react';
 import Cube from './components/Cube';
 import './App.css';
-import { OrbitControls, GizmoHelper, GizmoViewcube, TransformControls, useCursor, Grid, AccumulativeShadows, Environment, RandomizedLight } from '@react-three/drei';
-import { Canvas } from '@react-three/fiber';
+import { OrbitControls, GizmoHelper, GizmoViewcube, TransformControls, useCursor, Grid, AccumulativeShadows, Environment, RandomizedLight, Sky } from '@react-three/drei';
+import { Canvas, useThree } from '@react-three/fiber';
 import { useCubeStore } from './store';
 import { useControls } from 'leva';
+import * as THREE from 'three';
 
 export default function App() {
-  const { target, setTarget, isDragging } = useCubeStore();
+  const { target, setTarget, isDragging, setDragging } = useCubeStore();
+  const orbitControlsRef = useRef<THREE.OrbitControls | null>(null);
+  const transformRef = useRef<THREE.TransformControls | null>(null);
+  
   const Shadows = memo(() => (
     <AccumulativeShadows temporal frames={100} color="#9d4b4b" colorBlend={0.5} alphaTest={0.9} scale={20}>
       <RandomizedLight amount={8} radius={4} position={[5, 5, -10]} />
@@ -32,19 +36,40 @@ export default function App() {
 
   const { mode } = useControls({ mode: { value: 'translate', options: ['translate', 'rotate', 'scale'] } });
 
+  useEffect(() => {
+    if (transformRef.current) {
+      const controls = transformRef.current;
+      controls.addEventListener('dragging-changed', (event) => {
+        setDragging(event.value);
+        if (orbitControlsRef.current) {
+          orbitControlsRef.current.enabled = !event.value;
+        }
+      });
+    }
+  }, [setDragging]);
+
   return (
-    <Canvas shadows camera={{ position: [10, 12, 12], fov: 25 }}>
+    <Canvas shadows camera={{ position: [10, 12, 12], fov: 25 }} onPointerMissed={() => setTarget(null)}>
       <mesh
-        castShadow
         onClick={(e) => setTarget(e.object)}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
       >
         <Cube />
       </mesh>
-      {target && <TransformControls object={target} mode={mode} />}
+      {target && <TransformControls object={target} mode={mode} ref={transformRef}/>}
       <Environment preset="city" />
-      <OrbitControls enabled={!isDragging} />
+      <ambientLight intensity={0.5} />
+      <pointLight position={[10, 10, -5]} castShadow shadow-mapSize={1024} />
+      {/* <OrbitControls
+        ref={orbitControlsRef}
+        enabled={!isDragging}
+        mouseButtons={{
+          LEFT: THREE.MOUSE.PAN, // Assign left button to pan
+          RIGHT: THREE.MOUSE.ROTATE // Assign right button to rotate/orbit
+        }}      />*/}
+        <OrbitControls makeDefault />
+
       <GizmoHelper alignment="bottom-right" margin={[80, 80]}>
         <GizmoViewcube />
       </GizmoHelper>

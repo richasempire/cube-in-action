@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
-import { useCursor, TransformControls } from '@react-three/drei';
+import { useCursor } from '@react-three/drei';
 import { useDrag } from 'react-use-gesture';
 import { useCubeStore } from '../store';
 import * as THREE from 'three';
@@ -18,7 +18,7 @@ const Box = ({ position, id }) => {
 
 export default function Cube() {
   const ref = useRef<THREE.Mesh>(null);
-  const { addBox, boxes, isDragging, setDragging } = useCubeStore();
+  const { addBox, boxes, setDragging } = useCubeStore();
   const { size, viewport } = useThree();
   const aspect = size.width / viewport.width;
 
