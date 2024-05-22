@@ -4,17 +4,19 @@ import { useCursor } from '@react-three/drei';
 import { useDrag } from 'react-use-gesture';
 import { useCubeStore } from '../store';
 import * as THREE from 'three';
+import  EditableCube from './CubeForm';
 
-const Box = ({ position, id }) => {
-  const ref = useRef<THREE.Mesh>(null);
+// Box component:
+// const Box = ({ position, id }) => {
+//   const ref = useRef<THREE.Mesh>(null);
 
-  return (
-    <mesh position={position} ref={ref}>
-      <boxGeometry args={[1, 1, 1]} />
-      <meshLambertMaterial color="hotpink" />
-    </mesh>
-  );
-};
+//   return (
+//     <mesh position={position} ref={ref}>
+//       <boxGeometry args={[1, 1, 1]} />
+//       <meshLambertMaterial color="hotpink" />
+//     </mesh>
+//   );
+// };
 
 export default function Cube() {
   const ref = useRef<THREE.Mesh>(null);
@@ -55,7 +57,8 @@ export default function Cube() {
   return (
     <>
       {boxes.map((box) => (
-        <Box key={box.id} position={box.position} id={box.id} />
+        // <Box key={box.id} position={box.position} id={box.id} />
+        <EditableCube key={box.id} position={box.position} id={box.id} />
       ))}
       <mesh
         position={[0, 0, 0]}

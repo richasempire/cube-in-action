@@ -1,4 +1,4 @@
-import create from 'zustand';
+import {create} from 'zustand';
 import * as THREE from 'three';
 
 interface CubeState {
@@ -10,6 +10,8 @@ interface CubeState {
   setTarget: (target: THREE.Object3D | null) => void;
   preset: string;
   setPreset: (preset: string) => void;
+  vertices: THREE.Vector3[];
+  setVertex: (index: number, newPos: THREE.Vector3) => void;
 }
 
 export const useCubeStore = create<CubeState>((set) => ({
@@ -24,4 +26,19 @@ export const useCubeStore = create<CubeState>((set) => ({
   setTarget: (target) => set({ target }),
   preset: 'city',
   setPreset: (preset) => set({ preset }),
+  vertices: [
+    new THREE.Vector3(1, 1, 1),
+    new THREE.Vector3(1, 1, -1),
+    new THREE.Vector3(1, -1, 1),
+    new THREE.Vector3(1, -1, -1),
+    new THREE.Vector3(-1, 1, 1),
+    new THREE.Vector3(-1, 1, -1),
+    new THREE.Vector3(-1, -1, 1),
+    new THREE.Vector3(-1, -1, -1),
+  ],
+  setVertex: (index, newPos) => set(state => {
+    const newVertices = state.vertices.slice();
+    newVertices[index] = newPos;
+    return { vertices: newVertices };
+  }),
 }));
