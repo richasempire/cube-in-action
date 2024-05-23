@@ -1,21 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
-import { OrbitControls , TransformControls} from '@react-three/drei';
+import { OrbitControls, TransformControls } from '@react-three/drei';
 import { create } from 'zustand';
 import { useCubeStore } from '../store.ts';
 
-
 interface EditableCubeProps {
-    position: [number, number, number];
-    id: number;
-  }
+  position: [number, number, number];
+  id: number;
+}
 
-const EditableCube : React.FC<EditableCubeProps> = ({ position }) => {
-    const vertices = useCubeStore(state => state.vertices);
-    const setVertex = useCubeStore(state => state.setVertex);
-    const geometryRef = useRef(new THREE.BufferGeometry());
-  
+const EditableCube: React.FC<EditableCubeProps> = ({ position }) => {
+  const vertices = useCubeStore(state => state.vertices);
+  const setVertex = useCubeStore(state => state.setVertex);
+  const geometryRef = useRef(new THREE.BufferGeometry());
+
   useEffect(() => {
     if (geometryRef.current) {
       const positions = new Float32Array(vertices.flatMap(v => [v.x, v.y, v.z]));
@@ -41,39 +40,38 @@ const EditableCube : React.FC<EditableCubeProps> = ({ position }) => {
     // </mesh>
 
     <group position={position}>
-    <mesh geometry={geometryRef.current}>
-      <meshStandardMaterial color="green" side={THREE.DoubleSide} />
-    </mesh>
-    {vertices.map((vertex, index) => {
-      const handleRef = useRef<THREE.Object3D>(null);
+      <mesh geometry={geometryRef.current}>
+        <meshStandardMaterial color="green" side={THREE.DoubleSide} />
+      </mesh>
+      {vertices.map((vertex, index) => {
+        const handleRef = useRef<THREE.Mesh>(null);
 
-      useEffect(() => {
-        if (handleRef.current) {
-          handleRef.current.position.copy(vertex);
-        }
-      }, [vertex]);
+        useEffect(() => {
+          if (handleRef.current) {
+            handleRef.current.position.copy(vertex);
+          }
+        }, [vertex]);
 
-      return (
-        <TransformControls
-          key={index}
-          object={handleRef.current}
-          mode="translate"
-          onObjectChange={() => {
-            if (handleRef.current) {
-              setVertex(index, handleRef.current.position);
-            }
-          }}
-        >
-          <mesh ref={handleRef}>
-            <sphereGeometry args={[0.1, 32, 32]} />
-            <meshStandardMaterial color="red" />
-          </mesh>
-        </TransformControls>
-      );
-    })}
-  </group>
+        return (
+          <TransformControls
+            key={index}
+            object={handleRef.current as unknown as THREE.Object3D}
+            mode="translate"
+            onObjectChange={() => {
+              if (handleRef.current) {
+                setVertex(index, handleRef.current.position);
+              }
+            }}
+          >
+            <mesh ref={handleRef}>
+              <sphereGeometry args={[0.1, 32, 32]} />
+              <meshStandardMaterial color="red" />
+            </mesh>
+          </TransformControls>
+        );
+      })}
+    </group>
   );
 };
-
 
 export default EditableCube;

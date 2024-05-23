@@ -1,17 +1,18 @@
 import React, { memo, useState, useRef, useEffect } from 'react';
 import Cube from './components/Cube';
 import './App.css';
-import { OrbitControls, GizmoHelper, GizmoViewcube, TransformControls, useCursor, Grid, AccumulativeShadows, Environment, RandomizedLight, Sky } from '@react-three/drei';
-import { Canvas, useThree } from '@react-three/fiber';
+import { GizmoHelper, GizmoViewcube, useCursor, Grid, AccumulativeShadows, Environment, RandomizedLight, Sky } from '@react-three/drei';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, TransformControls } from '@react-three/drei';
 import { useCubeStore } from './store';
 import { useControls } from 'leva';
 import * as THREE from 'three';
 
 export default function App() {
   const { target, setTarget, isDragging, setDragging } = useCubeStore();
-  const orbitControlsRef = useRef<THREE.OrbitControls | null>(null);
-  const transformRef = useRef<THREE.TransformControls | null>(null);
-  
+  const orbitControlsRef = useRef<any>(null);  
+  const transformRef = useRef<any>(null);  
+
   const Shadows = memo(() => (
     <AccumulativeShadows temporal frames={100} color="#9d4b4b" colorBlend={0.5} alphaTest={0.9} scale={20}>
       <RandomizedLight amount={8} radius={4} position={[5, 5, -10]} />
@@ -57,7 +58,7 @@ export default function App() {
       >
         <Cube />
       </mesh>
-      {target && <TransformControls object={target} mode={mode} ref={transformRef}/>}
+      {target && <TransformControls object={target} mode={mode as 'translate' | 'rotate' | 'scale'} ref={transformRef}/>}
       <Environment preset="city" />
       <ambientLight intensity={0.5} />
       <pointLight position={[10, 10, -5]} castShadow shadow-mapSize={1024} />

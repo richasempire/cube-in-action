@@ -1,23 +1,20 @@
 import React, { useRef } from 'react';
-import { useThree, useFrame } from '@react-three/fiber';
-import { useCursor } from '@react-three/drei';
+import { useThree, useFrame, ThreeEvent } from '@react-three/fiber';
 import { useDrag } from 'react-use-gesture';
 import { useCubeStore } from '../store';
 import * as THREE from 'three';
-import  EditableCube from './CubeForm';
-
+import EditableCube from './CubeForm';
 // Box component:
-// const Box = ({ position, id }) => {
-//   const ref = useRef<THREE.Mesh>(null);
+const Box = ({ position, id }) => {
+  const ref = useRef<THREE.Mesh>(null);
 
-//   return (
-//     <mesh position={position} ref={ref}>
-//       <boxGeometry args={[1, 1, 1]} />
-//       <meshLambertMaterial color="hotpink" />
-//     </mesh>
-//   );
-// };
-
+  return (
+    <mesh position={position} ref={ref}>
+      <boxGeometry args={[1, 1, 1]} />
+      <meshLambertMaterial color="hotpink" />
+    </mesh>
+  );
+};
 export default function Cube() {
   const ref = useRef<THREE.Mesh>(null);
   const { addBox, boxes, setDragging } = useCubeStore();
@@ -33,7 +30,7 @@ export default function Cube() {
   });
 
   const bind = useDrag(
-    ({ offset: [x, y], last, memo }) => {
+    ({ offset: [x, y], last, memo, movement: [m, n] }) => {
       if (!memo) {
         const initialPos = ref.current?.position.toArray() || [0, 0, 0];
         initialPosition.current = initialPos;
@@ -42,30 +39,42 @@ export default function Cube() {
 
       if (last) {
         const [x1, y1, z1] = initialPosition.current;
-        const newBoxPosition = [(x / aspect) + x1, (-y / aspect) + y1, z1];
+        const newBoxPosition = [(m / aspect) + x1, (-n / aspect) + y1, z1];
         addBox(newBoxPosition as [number, number, number]);
         setDragging(false);
         return memo;
       } else {
         setDragging(true);
+        if (ref.current) {
+          const [x1, y1, z1] = initialPosition.current;
+          ref.current.position.set((m / aspect) + x1, (-n / aspect) + y1, z1);
+        }
         return memo;
       }
     },
     { pointerEvents: true }
   );
 
+  const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
+    console.log('hover');
+  };
+
+  const handlePointerOut = (e: ThreeEvent<PointerEvent>) => {
+    console.log('unhover');
+  };
+
   return (
     <>
       {boxes.map((box) => (
-        // <Box key={box.id} position={box.position} id={box.id} />
-        <EditableCube key={box.id} position={box.position} id={box.id} />
+        <Box key={box.id} position={box.position} id={box.id} />
+        // <EditableCube key={box.id} position={box.position} id={box.id} />
       ))}
-      <mesh
+       <mesh
         position={[0, 0, 0]}
         {...bind()}
         ref={ref}
-        onPointerOver={(e) => console.log('hover')}
-        onPointerOut={(e) => console.log('unhover')}
+        onPointerOver={handlePointerOver}
+        onPointerOut={handlePointerOut}
       >
         <boxGeometry attach="geometry" />
         <meshLambertMaterial attach="material" color="gray" />
