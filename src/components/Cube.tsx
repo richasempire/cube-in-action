@@ -66,9 +66,9 @@ export default function Cube() {
   return (
     <>
       {boxes.map((box) => (
-        <Box key={box.id} position={box.position} id={box.id} />
-        // <EditableCube key={box.id} position={box.position} id={box.id} />
-      ))}
+        // <Box key={box.id} position={box.position} id={box.id} /> 
+       <EditableCube key={box.id} position={box.position} id={box.id} />
+       ))}
        <mesh
         position={[0, 0, 0]}
         {...bind()}
@@ -77,9 +77,9 @@ export default function Cube() {
         onPointerOut={handlePointerOut}
       >
         <boxGeometry attach="geometry" />
-        <meshLambertMaterial attach="material" color="gray" />
-        <ambientLight intensity={0.9} />
-        <pointLight />
+        <meshLambertMaterial attach="material" color="yellow" />
+     
+     
       </mesh>
     </>
   );

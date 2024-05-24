@@ -2,19 +2,21 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 import { OrbitControls } from '@react-three/drei';
-import { create } from 'zustand';
-import { useCubeStore } from '../store.ts';
 
+const EditableCube = () => {
+  const [vertices, setVertices] = useState([
+    new THREE.Vector3(1, 1, 1),
+    new THREE.Vector3(1, 1, -1),
+    new THREE.Vector3(1, -1, 1),
+    new THREE.Vector3(1, -1, -1),
+    new THREE.Vector3(-1, 1, 1),
+    new THREE.Vector3(-1, 1, -1),
+    new THREE.Vector3(-1, -1, 1),
+    new THREE.Vector3(-1, -1, -1),
+  ]);
 
-interface EditableCubeProps {
-    position: [number, number, number];
-    id: number;
-  }
+  const geometryRef = useRef(new THREE.BufferGeometry());
 
-const EditableCube : React.FC<EditableCubeProps> = ({ position }) => {
-    const vertices = useCubeStore(state => state.vertices);
-    const geometryRef = useRef(new THREE.BufferGeometry());
-  
   useEffect(() => {
     if (geometryRef.current) {
       const positions = new Float32Array(vertices.flatMap(v => [v.x, v.y, v.z]));
@@ -34,9 +36,15 @@ const EditableCube : React.FC<EditableCubeProps> = ({ position }) => {
     }
   }, [vertices]);
 
+  const handleVertexChange = (index, newPos) => {
+    const newVertices = vertices.slice();
+    newVertices[index] = newPos;
+    setVertices(newVertices);
+  };
+
   return (
     <mesh geometry={geometryRef.current}>
-      <meshStandardMaterial color="green" side={THREE.DoubleSide}/>
+      <meshStandardMaterial color="orange" side={THREE.DoubleSide}/>
     </mesh>
   );
 };

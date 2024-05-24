@@ -6,9 +6,11 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, TransformControls } from '@react-three/drei';
 import { useCubeStore } from './store';
 import { useControls } from 'leva';
+import EditableCube  from './components/cubeWithVertex'
 import * as THREE from 'three';
 
 export default function App() {
+  const cubeVertices = [{}]
   const { target, setTarget, isDragging, setDragging } = useCubeStore();
   const orbitControlsRef = useRef<any>(null);  
   const transformRef = useRef<any>(null);  
@@ -49,26 +51,80 @@ export default function App() {
     }
   }, [setDragging]);
 
+
+
+
+    function multipleVertex( meshObject ) {
+      console.log("Object : ", meshObject.object)
+      console.log("Vertex osition", meshObject.object.getVertexPosition)
+      console.log("applyColor", meshObject.object.geometry)
+      const position = meshObject.object.geometry.attributes.position;
+
+      for( let i=0 ; i< position.count ; i++ )
+        {
+          console.log("points", position.array[i])
+          cubeVertices.push(i, i+1, i+2)
+        }
+        console.log(position.array)
+
+  }
+  useState
+  const material = new THREE.PointsMaterial({
+    color: 0x0000ff, // Blue color
+    size: 0.5,                                                   // Size of the point
+  });
+  const geometry = new THREE.BufferGeometry();
+
+  // Create a Float32Array for the single point
+  const vertices = new Float32Array([0.5, 0.5, -0.5]);
+
+  // Add the vertices to the geometry
+  geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+
+
   return (
-    <Canvas shadows camera={{ position: [100, 120, 120], fov: 25 }} onPointerMissed={() => setTarget(null)}>
-      <mesh
+    <Canvas shadows camera={{ position: [10, 12, 12], fov: 25 }} onPointerMissed={() => setTarget(null)}>
+{/*       <mesh
         onClick={(e) => setTarget(e.object)}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
       >
         <Cube />
-      </mesh>
+      </mesh> */}
+
+    {/* <mesh onClick={(e) => setTarget(e.object)}  onDoubleClick={(e) => console.log('double click')}> */}
+    <mesh 
+     
+     position={[0, 0, 0]}
+     onClick={(e) => {
+      //console.log('dsingle click' , e.object.geometry.attributes.position)
+      console.log('dsingle click' , e)
+      
+      multipleVertex(e)
+      }}  
+     onDoubleClick={(e) => console.log('double click')}>
+      <boxGeometry  args={[1, 1, 1]}
+        
+        />
+      
+      <meshLambertMaterial color="hotpink" /> 
+    </mesh>
+    
+    <points geometry={geometry} material={material} />
+    
+    
+
+
+{/* <mesh onClick={(e) => setTarget(e.object)}  onDoubleClick={(e) => console.log('double click')}>
+<EditableCube />
+</mesh>
+     */}
+
       {target && <TransformControls object={target} mode={mode as 'translate' | 'rotate' | 'scale'} ref={transformRef}/>}
       <Environment preset="city" />
       <ambientLight intensity={0.9} />
       <pointLight position={[5, 5, -5]} castShadow shadow-mapSize={1024} />
-      {/* <OrbitControls
-        ref={orbitControlsRef}
-        enabled={!isDragging}
-        mouseButtons={{
-          LEFT: THREE.MOUSE.PAN, // Assign left button to pan
-          RIGHT: THREE.MOUSE.ROTATE // Assign right button to rotate/orbit
-        }}      />*/}
+    
         <OrbitControls makeDefault />
 
       <GizmoHelper alignment="bottom-right" margin={[80, 80]}>
@@ -91,3 +147,11 @@ export default function App() {
     </Canvas>
   );
 }
+
+
+
+
+// step 1 --> get vertices
+// step 2 --> highlight vertices of cube
+// step 3 --> move vertices and update cube
+// step 4 --> update on mouse event

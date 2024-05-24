@@ -53,21 +53,27 @@ const EditableCube: React.FC<EditableCubeProps> = ({ position }) => {
         }, [vertex]);
 
         return (
-          <TransformControls
-            key={index}
-            object={handleRef.current as unknown as THREE.Object3D}
-            mode="translate"
-            onObjectChange={() => {
-              if (handleRef.current) {
-                setVertex(index, handleRef.current.position);
-              }
-            }}
-          >
-            <mesh ref={handleRef}>
+        //   <TransformControls
+        //     key={index}
+        //     object={handleRef.current as unknown as THREE.Object3D}
+        //     mode="translate"
+        //     onObjectChange={() => {
+        //       if (handleRef.current) {
+        //         setVertex(index, handleRef.current.position);
+        //       }
+        //     }}
+        //   >
+        //     <mesh ref={handleRef}>
+        //       <sphereGeometry args={[0.1, 32, 32]} />
+        //       <meshStandardMaterial color="red" />
+        //     </mesh>
+        //   </TransformControls>
+
+        <mesh ref={handleRef}>
               <sphereGeometry args={[0.1, 32, 32]} />
               <meshStandardMaterial color="red" />
-            </mesh>
-          </TransformControls>
+           </mesh>
+
         );
       })}
     </group>
