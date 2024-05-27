@@ -2,9 +2,9 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 // import App from './App.tsx';
-import App from './App copy.tsx';
+// import App from './App1.tsx';
 // import Apptest from './Apptest.tsx';
-
+import App from './App.tsx';
 const container = document.getElementById('root')!;
 const root = createRoot(container);
 
