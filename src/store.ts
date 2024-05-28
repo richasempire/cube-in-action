@@ -5,6 +5,7 @@ type Position = [number, number, number];
 interface CubeState {
   id: number;
   positions: Position[];
+  visible: false;
 }
 
 interface MeshState {
@@ -32,6 +33,7 @@ const initialPositions: Position[] = [
 const initialCube: CubeState = {
   id: 0,
   positions: initialPositions,
+  visible: false
 };
 
 const useMeshStore = create<MeshState>((set) => ({
@@ -41,6 +43,7 @@ const useMeshStore = create<MeshState>((set) => ({
       const newCube: CubeState = {
         id: state.cubes.length,
         positions: newPositions,
+        visible: false
       };
       console.log(`Cube added with ID: ${newCube.id}`);
       return { cubes: [...state.cubes, newCube] };
@@ -62,7 +65,9 @@ const useMeshStore = create<MeshState>((set) => ({
   selectedMesh: null,
   setSelectedMesh: (cubeId) =>
     set(() => {
+      
       console.log(`Selected mesh: Cube ${cubeId}`);
+      
       return { selectedMesh: cubeId };
     }),
   duplicateCube: () =>
@@ -70,11 +75,15 @@ const useMeshStore = create<MeshState>((set) => ({
       if (state.selectedMesh !== null) {
         const selectedCube = state.cubes.find(cube => cube.id === state.selectedMesh);
         if (selectedCube) {
-          const offset = 2;
+          const offset = 0;
           const newPositions = selectedCube.positions.map((pos) => [pos[0] + offset, pos[1] + offset, pos[2] + offset] as Position);
+          console.log("old" + selectedCube.positions)
+          console.log("new" + newPositions)
+          console.log( selectedCube)
           const newCube: CubeState = {
             id: state.cubes.length,
             positions: newPositions,
+            visible: false
           };
           console.log(`Cube duplicated with ID: ${newCube.id}`);
           return { cubes: [...state.cubes, newCube] };

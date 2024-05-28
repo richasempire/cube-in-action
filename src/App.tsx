@@ -16,7 +16,7 @@ const Scene: React.FC = () => {
   return (
     <group>
       {cubes.map((cube) => (
-        <Cube key={cube.id} id={cube.id} positions={cube.positions} mode={mode} onTransformEnd={handleTransformEnd} />
+        <Cube key={cube.id} id={cube.id} positions={cube.positions} mode={mode} visible={false} />
       ))}
     </group>
   );

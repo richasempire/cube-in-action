@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Sphere, TransformControls } from '@react-three/drei';
 import { useMeshStore } from '../store';
@@ -8,36 +8,92 @@ interface CubeProps {
   id: number;
   positions: [number, number, number][];
   mode: string;
-  onTransformEnd: (position: [number, number, number]) => void;
 }
 
-const Cube: React.FC<CubeProps> = ({ id, positions, mode, onTransformEnd }) => {
+const Cube: React.FC<CubeProps> = ({ id, positions, mode }) => {
   const { setPositions, setSelectedSphere, selectedSphere, setSelectedMesh, selectedMesh } = useMeshStore();
+  
+  // Create refs for spheres, group, mesh, control, and previous position
   const sphereRefs = useRef<React.MutableRefObject<THREE.Mesh | null>[]>(positions.map(() => React.createRef()));
   const groupRef = useRef<THREE.Group | null>(null);
   const meshRef = useRef<THREE.Mesh | null>(null);
-  const controlRef = useRef<THREE.TransformControls>(null);
-  const previousMeshPosition = useRef(new THREE.Vector3());
+  const controlRef = useRef<TransformControls>(null);
+  // const previousMeshPosition = useRef(new THREE.Vector3());
   const selectedObject = useRef<THREE.Object3D | null>(null);
 
-  const handleSphereClick = (index: number) => {
+  // Function to compute the center of an object
+  const getObjectCenter = (object: THREE.Object3D): THREE.Vector3 => {
+    const boundingBox = new THREE.Box3().setFromObject(object);
+    const center = new THREE.Vector3();
+    boundingBox.getCenter(center);
+    return center;
+  };
+
+  // Handle sphere click: set selected sphere and attach TransformControls
+  const handleSphereClick = useCallback((index: number) => {
     setSelectedSphere(id, index);
     setSelectedMesh(null);
     selectedObject.current = sphereRefs.current[index]?.current || null;
     if (controlRef.current && selectedObject.current) {
       controlRef.current.attach(selectedObject.current);
+      const center = getObjectCenter(selectedObject.current);
+      console.log('Sphere center:', center);
     }
-  };
+  }, [id, setSelectedSphere, setSelectedMesh]);
 
-  const handleMeshClick = () => {
+  // Handle mesh (cube) click: set selected mesh and attach TransformControls
+  const handleMeshClick = useCallback(() => {
     setSelectedSphere(null, null);
     setSelectedMesh(id);
+    
+    groupRef.current?.parent?.children.forEach((child) => {
+      //console.log(child)
+      //if (child.type == "Group"){
+        
+        child.children.forEach((innerChild) => {
+            
+            if (innerChild instanceof THREE.Mesh) {
+              console.log("MESH CHILD")
+              console.log(innerChild)
+              if(innerChild.geometry.type == "SphereGeometry"){
+                return innerChild.visible = false;
+              }
+            }
+
+            if (innerChild instanceof THREE.Object3D){
+              console.log("OBJECT CHILD")
+              console.log(innerChild)
+              innerChild.children.forEach((transformChild) => {
+                console.log("Transform Child")
+                console.log(transformChild)
+                if(transformChild.type == "TransformControlPlane"){
+                  return transformChild.visible = false;
+                }
+              })
+              }
+            })
+
+        
+    });
+
+    groupRef.current?.children.forEach((child) => {
+      if (child instanceof THREE.Mesh) {
+        //console.log(child.geometry);
+        if(child.geometry.type == "SphereGeometry"){
+          return child.visible = true;
+        }
+      }
+    });
+
     selectedObject.current = groupRef.current;
     if (controlRef.current && selectedObject.current) {
       controlRef.current.attach(selectedObject.current);
+      const center = getObjectCenter(selectedObject.current);
+      console.log('Mesh center:', center);
     }
-  };
+  }, [id, setSelectedSphere, setSelectedMesh]);
 
+  // Update the cube's geometry when positions change
   useEffect(() => {
     if (meshRef.current) {
       const geometry = new THREE.BufferGeometry();
@@ -56,33 +112,30 @@ const Cube: React.FC<CubeProps> = ({ id, positions, mode, onTransformEnd }) => {
     }
   }, [positions]);
 
-  useFrame(() => {
-    const control = controlRef.current;
-    if (!control) return;
+  // Handle frame updates: attach TransformControls and update positions
+  // useFrame(() => {
+  //   if (controlRef.current && selectedObject.current) {
+  //     controlRef.current.attach(selectedObject.current);
+  //     if (selectedMesh === id && groupRef.current) {
+  //       const controlledObject = groupRef.current;
+  //       const currentMeshPosition = controlledObject.position;
+  //       const offset = currentMeshPosition.clone().sub(previousMeshPosition.current);
+  //       previousMeshPosition.current.copy(currentMeshPosition);
+  //       setPositions(id, (prev) =>
+  //         prev.map((pos) => {
+  //           const newPos = new THREE.Vector3(...pos).add(offset);
+  //           return newPos.toArray() as [number, number, number];
+  //         })
+  //       );
+  //     }
+  //   }
+  // });
 
-    if (selectedObject.current) {
-      control.attach(selectedObject.current);
-      if (selectedMesh === id && groupRef.current) {
-        const controlledObject = groupRef.current;
-        const currentMeshPosition = controlledObject.position;
-        const offset = currentMeshPosition.clone().sub(previousMeshPosition.current);
-        offset.set(offset.x / 2, offset.y / 2, offset.z / 2);
-        previousMeshPosition.current.copy(currentMeshPosition);
-        setPositions(id, (prev) =>
-          prev.map((pos) => {
-            const newPos = new THREE.Vector3(...pos).add(offset);
-            return newPos.toArray() as [number, number, number];
-          })
-        );
-      }
-    } else {
-      control.detach();
-    }
-  });
-
+  // Handle TransformControls events
   useEffect(() => {
     const control = controlRef.current;
     if (control) {
+      // Update positions when a sphere is moved
       const handleObjectChange = () => {
         if (selectedSphere.cubeId === id && selectedSphere.sphereIndex !== null && sphereRefs.current[selectedSphere.sphereIndex]?.current) {
           const newPosition = sphereRefs.current[selectedSphere.sphereIndex].current?.position.toArray() as [number, number, number];
@@ -95,33 +148,30 @@ const Cube: React.FC<CubeProps> = ({ id, positions, mode, onTransformEnd }) => {
           });
         }
       };
+      // Update position when the whole cube is moved
       control.addEventListener('objectChange', handleObjectChange);
-      control.addEventListener('mouseUp', () => {
-        if (selectedObject.current && groupRef.current && selectedMesh === id) {
-          const newPosition = groupRef.current.position.toArray() as [number, number, number];
-          onTransformEnd(newPosition);
-        }
-      });
+      // Cleanup event listeners on component unmount
       return () => {
         control.removeEventListener('objectChange', handleObjectChange);
-        control.removeEventListener('mouseUp', () => {});
       };
     }
-  }, [selectedSphere, setPositions, selectedMesh, onTransformEnd]);
+  }, [id, selectedSphere, setPositions, selectedMesh]);
 
   return (
     <>
-      <group castShadow ref={groupRef}>
+      <group ref={groupRef} >
         {positions.map((pos, index) => (
-          <Sphere key={index} position={pos} args={[0.05, 16, 16]} ref={sphereRefs.current[index]} onClick={() => handleSphereClick(index)} castShadow>
+          <Sphere key={index} position={pos} visible= {false} args={[0.05, 16, 16]} ref={sphereRefs.current[index]} onClick={() => handleSphereClick(index)} castShadow>
             <meshStandardMaterial attach="material" color={selectedSphere.cubeId === id && selectedSphere.sphereIndex === index ? 'royalblue' : 'white'} />
           </Sphere>
         ))}
-        <mesh castShadow ref={meshRef} onClick={handleMeshClick} receiveShadow>
-          <meshStandardMaterial color="hotpink" side={THREE.DoubleSide} />
+        <mesh ref={meshRef} onClick={handleMeshClick} castShadow receiveShadow>
+          <meshStandardMaterial color={selectedMesh === id ? 'green' : 'hotpink'} side={THREE.DoubleSide} />
         </mesh>
       </group>
-      <TransformControls mode={mode as 'translate' | 'rotate' | 'scale'} ref={controlRef} />
+      {selectedObject.current && (
+        <TransformControls mode={mode as 'translate' | 'rotate' | 'scale'} object={selectedObject.current} ref={controlRef} />
+      )}
     </>
   );
 };
