@@ -16,7 +16,7 @@ const Scene: React.FC = () => {
   return (
     <group>
       {cubes.map((cube) => (
-        <Cube key={cube.id} id={cube.id} positions={cube.positions} mode={mode} visible={false} />
+        <Cube key={cube.id} id={cube.id} positions={cube.positions} mode={mode} />
       ))}
     </group>
   );
@@ -79,15 +79,9 @@ const App: React.FC = () => {
         followCamera={gridConfig.followCamera}
         infiniteGrid={gridConfig.infiniteGrid}
       />
-
       </Canvas>
     </div>
   );
 };
-// const Shadows = memo(() => (
-//   <AccumulativeShadows temporal frames={100} color="#9d4b4b" colorBlend={0.5} alphaTest={0.9} scale={20}>
-//     <RandomizedLight amount={8} radius={4} position={[5, 5, -10]} />
-//   </AccumulativeShadows>
-// ))
 
 export default App;

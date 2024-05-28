@@ -46,45 +46,6 @@ const Cube: React.FC<CubeProps> = ({ id, positions, mode }) => {
     setSelectedSphere(null, null);
     setSelectedMesh(id);
     
-
-    groupRef.current?.parent?.children.forEach((child) => {
-      
-      if (child.type != 'Group'){
-        console.log(child.type)
-        console.log("Akshay",child)
-        if (child instanceof THREE.Object3D){
-          console.log("Child by ID -: ", child.id)
-          console.log(child.getObjectById(child.id))
-        }
-        //return child.visible = !child.visible
-      }
-
-      child.children.forEach((innerChild) => {
-          
-          if (innerChild instanceof THREE.Mesh) {
-            if(innerChild.geometry.type == "SphereGeometry"){
-              return innerChild.visible = false;
-            }
-          }
-
-          if (innerChild instanceof THREE.Object3D){
-            console.log("INNER CHILD")
-            console.log(innerChild)
-            
-              if(innerChild.type == "TransformControlPlane"){
-                console.log("Setting TransformControlPlane - false")
-                return innerChild.visible = ! innerChild.visible;
-              }
-              if(innerChild.type == "TransformControlsGizmo"){
-                console.log("Setting TransformControlsGizmo - false")
-                return innerChild.visible = ! innerChild.visible;
-              }
-            }
-      })
-
-      
-  });
-
     groupRef.current?.parent?.children.forEach((child) => {
         child.children.forEach((innerChild) => {
             
@@ -93,27 +54,8 @@ const Cube: React.FC<CubeProps> = ({ id, positions, mode }) => {
                 return innerChild.visible = false;
               }
             }
-
-            if (innerChild instanceof THREE.Object3D){
-              //console.log("OBJECT CHILD")
-              //console.log(innerChild)
-              
-                if(innerChild.type == "TransformControlPlane"){
-                  console.log("Setting TransformControlPlane - false")
-                  return innerChild.visible = ! innerChild.visible;
-                }
-                if(innerChild.type == "TransformControlsGizmo"){
-                  console.log("Setting TransformControlsGizmo - false")
-                  return innerChild.visible = ! innerChild.visible;
-                }
-              }
         })
-
-        
     });
-
-    
-
     groupRef.current?.children.forEach((child) => {
       //console.log(groupRef.current)
       if (child instanceof THREE.Mesh) {
@@ -151,24 +93,6 @@ const Cube: React.FC<CubeProps> = ({ id, positions, mode }) => {
     }
   }, [positions]);
 
-  // Handle frame updates: attach TransformControls and update positions
-  // useFrame(() => {
-  //   if (controlRef.current && selectedObject.current) {
-  //     controlRef.current.attach(selectedObject.current);
-  //     if (selectedMesh === id && groupRef.current) {
-  //       const controlledObject = groupRef.current;
-  //       const currentMeshPosition = controlledObject.position;
-  //       const offset = currentMeshPosition.clone().sub(previousMeshPosition.current);
-  //       previousMeshPosition.current.copy(currentMeshPosition);
-  //       setPositions(id, (prev) =>
-  //         prev.map((pos) => {
-  //           const newPos = new THREE.Vector3(...pos).add(offset);
-  //           return newPos.toArray() as [number, number, number];
-  //         })
-  //       );
-  //     }
-  //   }
-  // });
 
   // Handle TransformControls events
   useEffect(() => {
@@ -205,11 +129,11 @@ const Cube: React.FC<CubeProps> = ({ id, positions, mode }) => {
           </Sphere>
         ))}
         <mesh ref={meshRef} onClick={handleMeshClick} castShadow receiveShadow>
-          <meshStandardMaterial color={selectedMesh === id ? 'green' : 'hotpink'} side={THREE.DoubleSide} />
+          <meshStandardMaterial color={selectedMesh === id ? 'lightgreen' : 'hotpink'} side={THREE.DoubleSide} />
         </mesh>
       </group>
       {selectedObject.current && (
-        <TransformControls mode={mode as 'translate' | 'rotate' | 'scale'} object={selectedObject.current} ref={controlRef} />
+        <TransformControls mode={mode as 'translate' | 'rotate' | 'scale'} object={selectedObject.current} ref={controlRef} visible= {false}/>
       )}
     </>
   );
