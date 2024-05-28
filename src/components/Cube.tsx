@@ -46,43 +46,82 @@ const Cube: React.FC<CubeProps> = ({ id, positions, mode }) => {
     setSelectedSphere(null, null);
     setSelectedMesh(id);
     
+
     groupRef.current?.parent?.children.forEach((child) => {
-      //console.log(child)
-      //if (child.type == "Group"){
-        
+      
+      if (child.type != 'Group'){
+        console.log(child.type)
+        console.log("Akshay",child)
+        if (child instanceof THREE.Object3D){
+          console.log("Child by ID -: ", child.id)
+          console.log(child.getObjectById(child.id))
+        }
+        //return child.visible = !child.visible
+      }
+
+      child.children.forEach((innerChild) => {
+          
+          if (innerChild instanceof THREE.Mesh) {
+            if(innerChild.geometry.type == "SphereGeometry"){
+              return innerChild.visible = false;
+            }
+          }
+
+          if (innerChild instanceof THREE.Object3D){
+            console.log("INNER CHILD")
+            console.log(innerChild)
+            
+              if(innerChild.type == "TransformControlPlane"){
+                console.log("Setting TransformControlPlane - false")
+                return innerChild.visible = ! innerChild.visible;
+              }
+              if(innerChild.type == "TransformControlsGizmo"){
+                console.log("Setting TransformControlsGizmo - false")
+                return innerChild.visible = ! innerChild.visible;
+              }
+            }
+      })
+
+      
+  });
+
+    groupRef.current?.parent?.children.forEach((child) => {
         child.children.forEach((innerChild) => {
             
             if (innerChild instanceof THREE.Mesh) {
-              console.log("MESH CHILD")
-              console.log(innerChild)
               if(innerChild.geometry.type == "SphereGeometry"){
                 return innerChild.visible = false;
               }
             }
 
             if (innerChild instanceof THREE.Object3D){
-              console.log("OBJECT CHILD")
-              console.log(innerChild)
-              innerChild.children.forEach((transformChild) => {
-                console.log("Transform Child")
-                console.log(transformChild)
-                if(transformChild.type == "TransformControlPlane"){
-                  return transformChild.visible = false;
+              //console.log("OBJECT CHILD")
+              //console.log(innerChild)
+              
+                if(innerChild.type == "TransformControlPlane"){
+                  console.log("Setting TransformControlPlane - false")
+                  return innerChild.visible = ! innerChild.visible;
                 }
-              })
+                if(innerChild.type == "TransformControlsGizmo"){
+                  console.log("Setting TransformControlsGizmo - false")
+                  return innerChild.visible = ! innerChild.visible;
+                }
               }
-            })
+        })
 
         
     });
 
+    
+
     groupRef.current?.children.forEach((child) => {
+      //console.log(groupRef.current)
       if (child instanceof THREE.Mesh) {
-        //console.log(child.geometry);
         if(child.geometry.type == "SphereGeometry"){
           return child.visible = true;
         }
       }
+
     });
 
     selectedObject.current = groupRef.current;
