@@ -1,120 +1,93 @@
-// App.tsx
-import React, { useRef, useEffect, useState } from 'react';
-import { Canvas, useThree, useFrame } from '@react-three/fiber';
-import { OrbitControls, TransformControls, GizmoHelper, Grid, GizmoViewcube } from '@react-three/drei';
+import React, { useEffect, memo } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, GizmoHelper, Grid, GizmoViewcube, AccumulativeShadows, RandomizedLight } from '@react-three/drei';
 import { useControls } from 'leva';
 import { useMeshStore } from './store';
-import Cube from './Cube';
-import * as THREE from 'three';
-
+import Cube from './components/Cube';
 
 const Scene: React.FC = () => {
+  const { cubes } = useMeshStore();
   const { mode } = useControls({ mode: { value: 'translate', options: ['translate', 'rotate', 'scale'] } });
-  const { setPositions, setSelectedSphere, setSelectedMesh, addCube, selectedMesh } = useMeshStore();
 
-  const groupRef = useRef<THREE.Group | null>(null);
-  const controlRef = useRef<TransformControls>(null);
-  const previousMeshPosition = useRef(new THREE.Vector3());
-  const [shiftPressed, setShiftPressed] = useState(false);
-
-  const handleMeshClick = () => {
-    setSelectedSphere(null);
-    setSelectedMesh(true);
+  const handleTransformEnd = (position: [number, number, number]) => {
+    console.log('Transform ended with position:', position);
   };
+
+  return (
+    <group>
+      {cubes.map((cube) => (
+        <Cube key={cube.id} id={cube.id} positions={cube.positions} mode={mode} onTransformEnd={handleTransformEnd} />
+      ))}
+    </group>
+  );
+};
+
+const App: React.FC = () => {
+  const { duplicateCube } = useMeshStore();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Shift') {
-        setShiftPressed(true);
-      }
-    };
-
-    const handleKeyUp = (event: KeyboardEvent) => {
-      if (event.key === 'Shift') {
-        setShiftPressed(false);
+      if (event.key === 'c') {
+        duplicateCube();
+        console.log('Duplicate cube created');
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
     };
-  }, []);
+  }, [duplicateCube]);
+  const gridConfig = {
+    cellSize: { value: 0.2, min: 0, max: 10, step: 0.1 },
+    cellThickness: { value: 1, min: 0, max: 5, step: 0.1 },
+    cellColor: '#6f6f6f',
+    sectionSize: { value: 2, min: 0, max: 10, step: 0.1 },
+    sectionThickness: { value: 1.5, min: 0, max: 5, step: 0.1 },
+    sectionColor: '#9d7a7a',
+    fadeDistance: { value: 25, min: 0, max: 100, step: 1 },
+    fadeStrength: { value: 1, min: 0, max: 1, step: 0.1 },
+    followCamera: false,
+    infiniteGrid: true,
+  };
+  
 
-  useFrame(() => {
-    const control = controlRef.current;
-    const group = groupRef.current;
-    if (!control || !group) return;
-
-    const handleTransformEnd = () => {
-      if (shiftPressed && selectedMesh) {
-        const newCubePosition = group.position.toArray() as [number, number, number];
-        addCube(newCubePosition);
-      }
-    };
-
-    control.addEventListener('mouseUp', handleTransformEnd);
-
-    if (selectedMesh) {
-      const controlledObject = group;
-      const currentMeshPosition = controlledObject.position;
-      const offset = currentMeshPosition.clone().sub(previousMeshPosition.current);
-      offset.set(offset.x / 2, offset.y / 2, offset.z / 2);
-      previousMeshPosition.current.copy(currentMeshPosition);
-      setPositions((prev) =>
-        prev.map((pos) => {
-          const newPos = new THREE.Vector3(...pos).add(offset);
-          return newPos.toArray() as [number, number, number];
-        })
-      );
-    }
-
-    return () => {
-      control.removeEventListener('mouseUp', handleTransformEnd);
-    };
-  });
-
-  return (
-    <>
-      <ambientLight intensity={0.5} />
-      <pointLight position={[10, 10, 10]} castShadow />
-      <directionalLight
-        castShadow
-        position={[5, 5, 5]}
-        intensity={0.5}
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
-        shadow-camera-far={50}
-        shadow-camera-left={-10}
-        shadow-camera-right={10}
-        shadow-camera-top={10}
-        shadow-camera-bottom={-10}
-      />
-      <group ref={groupRef}>
-        <Cube />
-        {/* <mesh onClick={handleMeshClick} castShadow receiveShadow>
-          <meshStandardMaterial color="hotpink" side={THREE.DoubleSide} />
-        </mesh> */}
-      </group>
-      <TransformControls mode={mode as 'translate' | 'rotate' | 'scale'} ref={controlRef} />
-      <OrbitControls makeDefault />
-      <GizmoHelper alignment="bottom-right" margin={[80, 80]}>
-        <GizmoViewcube />
-      </GizmoHelper>
-      </>
-  )
-};
-
-const App: React.FC = () => {
   return (
     <div style={{ height: '100vh' }}>
-      <Canvas>
+      <Canvas shadows camera={{ position: [10, 12, 12], fov: 25 }}>
         <Scene />
+        <ambientLight intensity={0.5} />
+        <pointLight position={[0, 10, 10]} intensity={1} castShadow />
+      <directionalLight position={[10, 10, 5]} intensity={1} castShadow shadow-mapSize={1024}/>
+        <OrbitControls makeDefault />
+        {/* <Shadows/> */}
+        <GizmoHelper alignment="bottom-right" margin={[80, 80]}>
+          <GizmoViewcube />
+        </GizmoHelper>
+        
+        <Grid
+        position={[-1, -1, -1]}
+        args={[10.5, 10.5]}
+        cellSize={gridConfig.cellSize.value}
+        cellThickness={gridConfig.cellThickness.value}
+        cellColor={gridConfig.cellColor}
+        sectionSize={gridConfig.sectionSize.value}
+        sectionThickness={gridConfig.sectionThickness.value}
+        sectionColor={gridConfig.sectionColor}
+        fadeDistance={gridConfig.fadeDistance.value}
+        fadeStrength={gridConfig.fadeStrength.value}
+        followCamera={gridConfig.followCamera}
+        infiniteGrid={gridConfig.infiniteGrid}
+      />
+
       </Canvas>
     </div>
   );
 };
+// const Shadows = memo(() => (
+//   <AccumulativeShadows temporal frames={100} color="#9d4b4b" colorBlend={0.5} alphaTest={0.9} scale={20}>
+//     <RandomizedLight amount={8} radius={4} position={[5, 5, -10]} />
+//   </AccumulativeShadows>
+// ))
 
 export default App;
