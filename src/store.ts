@@ -1,44 +1,41 @@
-import {create} from 'zustand';
+// store.ts
+import { create } from 'zustand';
 import * as THREE from 'three';
 
-interface CubeState {
-  boxes: { id: number; position: [number, number, number] }[];
-  addBox: (position: [number, number, number]) => void;
-  isDragging: boolean;
-  setDragging: (isDragging: boolean) => void;
-  target: THREE.Object3D | null;
-  setTarget: (target: THREE.Object3D | null) => void;
-  preset: string;
-  setPreset: (preset: string) => void;
-  vertices: THREE.Vector3[];
-  setVertex: (index: number, newPos: THREE.Vector3) => void;
+type Position = [number, number, number];
+
+interface MeshState {
+  positions: Position[];
+  setPositions: (positions: (prev: Position[]) => Position[]) => void;
+  selectedSphere: number | null;
+  setSelectedSphere: (index: number | null) => void;
+  selectedMesh: boolean;
+  setSelectedMesh: (selected: boolean) => void;
+  addCube: (position: Position) => void;
 }
 
-export const useCubeStore = create<CubeState>((set) => ({
-  boxes: [{ id: 1, position: [0, 0, 0] }],
-  addBox: (position) =>
-    set((state) => ({
-      boxes: [...state.boxes, { id: state.boxes.length + 1, position }],
-    })),
-  isDragging: false,
-  setDragging: (isDragging) => set({ isDragging }),
-  target: null,
-  setTarget: (target) => set({ target }),
-  preset: 'city',
-  setPreset: (preset) => set({ preset }),
-  vertices: [
-    new THREE.Vector3(1, 1, 1),
-    new THREE.Vector3(1, 1, -1),
-    new THREE.Vector3(1, -1, 1),
-    new THREE.Vector3(1, -1, -1),
-    new THREE.Vector3(-1, 1, 1),
-    new THREE.Vector3(-1, 1, -1),
-    new THREE.Vector3(-1, -1, 1),
-    new THREE.Vector3(-1, -1, -1),
+export const useMeshStore = create<MeshState>((set) => ({
+  positions: [
+    [-1, -1, -1],
+    [1, -1, -1],
+    [1, 1, -1],
+    [-1, 1, -1],
+    [-1, -1, 1],
+    [1, -1, 1],
+    [1, 1, 1],
+    [-1, 1, 1]
   ],
-  setVertex: (index, newPos) => set(state => {
-    const newVertices = state.vertices.slice();
-    newVertices[index] = newPos;
-    return { vertices: newVertices };
+  setPositions: (update) => set((state) => ({ positions: update(state.positions) })),
+  selectedSphere: null,
+  setSelectedSphere: (index) => set({ selectedSphere: index }),
+  selectedMesh: false,
+  setSelectedMesh: (selected) => set({ selectedMesh: selected }),
+  addCube: (position) => set((state) => {
+    const offset = new THREE.Vector3(position[0], position[1], position[2]);
+    const newCubePositions: Position[] = [
+      [-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1],
+      [-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]
+    ].map(([x, y, z]) => [x + offset.x, y + offset.y, z + offset.z] as Position);
+    return { positions: [...state.positions, ...newCubePositions] };
   }),
 }));
